@@ -1,0 +1,972 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#7c3aed" />
+    <meta name="description" content="Anonymous Lottery System - Private lottery platform using Zama FHE protocol" />
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <title>Anonymous Lottery System</title>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: #fafafa;
+            min-height: 100vh;
+            color: #1a1a1a;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 60px;
+            padding: 0;
+            background: none;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            font-weight: 300;
+            color: #1a1a1a;
+            margin-bottom: 10px;
+            letter-spacing: -0.5px;
+        }
+
+        .header p {
+            font-size: 0.95rem;
+            color: #666;
+            margin-bottom: 30px;
+            font-weight: 400;
+        }
+
+        .status-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 14px;
+            background: white;
+            border: 1px solid #e0e0e0;
+            border-radius: 4px;
+            color: #22c55e;
+            font-weight: 400;
+            font-size: 0.875rem;
+        }
+
+        .status-dot {
+            width: 6px;
+            height: 6px;
+            background: #22c55e;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+            margin-bottom: 40px;
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                grid-template-columns: 1fr;
+                gap: 30px;
+            }
+        }
+
+        .card {
+            background: white;
+            border-radius: 2px;
+            padding: 40px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+            border: 1px solid #e0e0e0;
+        }
+
+        .card h2 {
+            font-size: 1.25rem;
+            font-weight: 400;
+            margin-bottom: 30px;
+            color: #1a1a1a;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            letter-spacing: -0.3px;
+        }
+
+        .icon {
+            width: 20px;
+            height: 20px;
+            fill: #1a1a1a;
+        }
+
+        .input-group {
+            margin-bottom: 24px;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 400;
+            color: #666;
+            font-size: 0.875rem;
+        }
+
+        .input-group input, .input-group select {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #e0e0e0;
+            border-radius: 2px;
+            font-size: 14px;
+            transition: border 0.2s ease;
+            background: white;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .input-group input:focus, .input-group select:focus {
+            outline: none;
+            border-color: #1a1a1a;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 2px;
+            font-size: 14px;
+            font-weight: 400;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-transform: none;
+            letter-spacing: 0;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .btn-primary {
+            background: #1a1a1a;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #333;
+        }
+
+        .btn-secondary {
+            background: white;
+            color: #1a1a1a;
+            border: 1px solid #1a1a1a;
+        }
+
+        .btn-secondary:hover {
+            background: #1a1a1a;
+            color: white;
+        }
+
+        .btn:disabled {
+            background: #f5f5f5;
+            color: #999;
+            border: 1px solid #e0e0e0;
+            cursor: not-allowed;
+        }
+
+        .lottery-info {
+            background: #fafafa;
+            border-radius: 2px;
+            padding: 24px;
+            margin-bottom: 30px;
+            border: 1px solid #f0f0f0;
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 20px;
+        }
+
+        .info-item {
+            text-align: left;
+        }
+
+        .info-item .label {
+            font-size: 0.75rem;
+            color: #999;
+            font-weight: 400;
+            margin-bottom: 6px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .info-item .value {
+            font-size: 1.1rem;
+            font-weight: 400;
+            color: #1a1a1a;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .spinner {
+            width: 32px;
+            height: 32px;
+            border: 2px solid #f0f0f0;
+            border-top: 2px solid #1a1a1a;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .alert {
+            padding: 14px 16px;
+            border-radius: 2px;
+            margin-bottom: 20px;
+            font-weight: 400;
+            font-size: 0.875rem;
+            border: 1px solid;
+        }
+
+        .alert-success {
+            background: #f0fdf4;
+            border-color: #bbf7d0;
+            color: #15803d;
+        }
+
+        .alert-error {
+            background: #fef2f2;
+            border-color: #fecaca;
+            color: #b91c1c;
+        }
+
+        .alert-info {
+            background: #eff6ff;
+            border-color: #bfdbfe;
+            color: #1e40af;
+        }
+
+        .network-info {
+            background: white;
+            border: 1px solid #e0e0e0;
+            padding: 20px;
+            border-radius: 2px;
+            margin-top: 30px;
+            text-align: left;
+            color: #666;
+            font-size: 0.875rem;
+        }
+
+        .network-info div {
+            margin-bottom: 6px;
+        }
+
+        .transaction-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.3);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 40px;
+            border-radius: 2px;
+            max-width: 500px;
+            width: 90%;
+            text-align: center;
+            border: 1px solid #e0e0e0;
+        }
+
+        .modal-content h3 {
+            margin-bottom: 20px;
+            color: #1a1a1a;
+            font-weight: 400;
+            font-size: 1.25rem;
+        }
+
+        .transaction-details {
+            background: #fafafa;
+            padding: 20px;
+            border-radius: 2px;
+            margin: 20px 0;
+            text-align: left;
+            border: 1px solid #f0f0f0;
+        }
+
+        .transaction-details div {
+            margin-bottom: 12px;
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.875rem;
+        }
+
+        .transaction-details .label {
+            font-weight: 400;
+            color: #999;
+        }
+
+        .transaction-details .value {
+            color: #1a1a1a;
+            font-family: monospace;
+        }
+
+        .winner-result {
+            display: none;
+            margin-top: 30px;
+        }
+
+        .winner-announcement {
+            background: white;
+            color: #1a1a1a;
+            padding: 30px;
+            border-radius: 2px;
+            text-align: center;
+            margin: 20px 0;
+            border: 2px solid #1a1a1a;
+        }
+
+        .winner-announcement h3 {
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+            font-weight: 400;
+        }
+
+        .winning-numbers {
+            font-size: 1.8rem;
+            font-weight: 300;
+            margin: 15px 0;
+            letter-spacing: 4px;
+        }
+
+        .winner-address {
+            margin: 15px 0;
+            font-family: monospace;
+            font-size: 0.875rem;
+            color: #666;
+        }
+
+        .prize-amount {
+            margin: 15px 0;
+            font-size: 1.1rem;
+            font-weight: 400;
+        }
+
+        .round-number {
+            margin-top: 20px;
+            font-size: 0.875rem;
+            color: #999;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎰 Anonymous Lottery System</h1>
+            <p>Private lottery platform using Zama FHE protocol for confidential draws</p>
+            <div class="status-indicator" id="connectionStatus">
+                <div class="status-dot"></div>
+                <span>Connecting to blockchain...</span>
+            </div>
+            <div class="network-info">
+                <div>Network: <span id="networkName">Not connected</span></div>
+                <div>Contract: <span id="contractAddress">Not connected</span></div>
+                <div>Your Address: <span id="userAddress">Not connected</span></div>
+                <div>Balance: <span id="userBalance">0.0000 ETH</span></div>
+            </div>
+        </div>
+
+        <div class="main-content">
+            <div class="card">
+                <h2>
+                    <svg class="icon" viewBox="0 0 24 24">
+                        <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                    Enter Lottery
+                </h2>
+
+                <div class="lottery-info">
+                    <div class="info-grid">
+                        <div class="info-item">
+                            <div class="label">Prize Pool</div>
+                            <div class="value" id="prizePool">0.000 ETH</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="label">Participants</div>
+                            <div class="value" id="participantCount">0</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="label">Per Ticket</div>
+                            <div class="value" id="entryFee">0.00001 ETH</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="label">Your Total</div>
+                            <div class="value" id="totalCost">0.00001 ETH</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="label">Status</div>
+                            <div class="value" id="lotteryStatus">Active</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="input-group">
+                    <label for="luckyNumbers">Select Your Lucky Numbers (1-50)</label>
+                    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;">
+                        <input type="number" id="number1" min="1" max="50" placeholder="Number 1" required>
+                        <input type="number" id="number2" min="1" max="50" placeholder="Number 2" required>
+                        <input type="number" id="number3" min="1" max="50" placeholder="Number 3" required>
+                    </div>
+                </div>
+
+                <div class="input-group">
+                    <label for="ticketQuantity">Number of Tickets</label>
+                    <select id="ticketQuantity" onchange="updateTotalCost()">
+                        <option value="1">1 Ticket</option>
+                        <option value="2">2 Tickets</option>
+                        <option value="3">3 Tickets</option>
+                        <option value="5">5 Tickets</option>
+                    </select>
+                </div>
+
+                <button class="btn btn-primary" id="enterLotteryBtn" onclick="enterLottery()">
+                    Enter Lottery
+                </button>
+
+                <div class="loading" id="enterLoading">
+                    <div class="spinner"></div>
+                    <div>Processing your entry...</div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>
+                    <svg class="icon" viewBox="0 0 24 24">
+                        <path d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                    </svg>
+                    Draw Winner
+                </h2>
+
+                <div class="input-group">
+                    <label>Draw Settings</label>
+                    <div style="background: #f3f4f6; padding: 15px; border-radius: 10px; margin-bottom: 15px;">
+                        <p style="margin-bottom: 10px; color: #6b7280;">
+                            <strong>Privacy Features:</strong>
+                        </p>
+                        <ul style="color: #6b7280; margin-left: 20px;">
+                            <li>Numbers are encrypted using FHE</li>
+                            <li>Winners drawn privately on-chain</li>
+                            <li>Results revealed only after draw</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <button class="btn btn-secondary" id="drawWinnerBtn" onclick="drawWinner()">
+                    Draw Winner
+                </button>
+
+                <div class="loading" id="drawLoading">
+                    <div class="spinner"></div>
+                    <div>Drawing winner...</div>
+                </div>
+
+                <div id="winnerResult" class="winner-result">
+                    <div class="winner-announcement">
+                        <h3>🏆 Winner Drawn!</h3>
+                        <div class="winning-numbers" id="winningNumbers">00-00-00</div>
+                        <div class="winner-address">Winner: <span id="winnerAddress">0x...</span></div>
+                        <div class="prize-amount">Prize: <span id="prizeWon">0.00 ETH</span></div>
+                        <div class="round-number">Round #<span id="roundNumber">1</span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="transaction-modal" id="transactionModal">
+        <div class="modal-content">
+            <h3>Transaction Confirmation</h3>
+            <p>Please confirm this transaction in MetaMask</p>
+            <div class="transaction-details" id="transactionDetails">
+                <div>
+                    <span class="label">Action:</span>
+                    <span class="value" id="txAction">Enter Lottery</span>
+                </div>
+                <div>
+                    <span class="label">Amount:</span>
+                    <span class="value" id="txAmount">0.00001 ETH</span>
+                </div>
+                <div>
+                    <span class="label">Gas Limit:</span>
+                    <span class="value" id="txGasLimit">150,000</span>
+                </div>
+                <div>
+                    <span class="label">Network:</span>
+                    <span class="value" id="txNetwork">Sepolia</span>
+                </div>
+            </div>
+            <div class="loading">
+                <div class="spinner"></div>
+                <div>Waiting for MetaMask confirmation...</div>
+            </div>
+        </div>
+    </div>
+
+    <script src="ethers.min.js"></script>
+    <script>
+        let provider;
+        let signer;
+        let contract;
+        let userAddress;
+        let currentNetwork;
+
+        const CONTRACT_ADDRESS = "0x5Ad7D251A9EDB8F1308f81940b828DCe86bD77F7";
+        const SEPOLIA_NETWORK_ID = 11155111;
+        const NETWORK_NAME = "Sepolia";
+
+        const CONTRACT_ABI = [
+            "function enterLottery(bool num1, bool num2, bool num3) payable external",
+            "function drawWinner() external returns (address)",
+            "function getParticipants() external view returns (address[])",
+            "function getPrizePool() external view returns (uint256)",
+            "function getEntryFee() external view returns (uint256)",
+            "function getWinningNumbers() external view returns (uint8, uint8, uint8)",
+            "function getLastWinner() external view returns (address)",
+            "function isLotteryActive() external view returns (bool)",
+            "function getCurrentRound() external view returns (uint256)",
+            "function getEntryCount() external view returns (uint256)",
+            "event LotteryEntered(address indexed participant, uint256 ticketCount, uint256 totalEntries, uint256 round)",
+            "event WinnerDrawn(address indexed winner, uint256 prize, uint8 num1, uint8 num2, uint8 num3, uint256 round)"
+        ];
+
+        async function connectWallet() {
+            try {
+                if (typeof window.ethereum === 'undefined') {
+                    showAlert('MetaMask is not installed. Please install MetaMask to use this application.', 'error');
+                    return;
+                }
+
+                showAlert('Requesting wallet connection...', 'info');
+
+                await window.ethereum.request({
+                    method: 'eth_requestAccounts'
+                });
+
+                provider = new ethers.providers.Web3Provider(window.ethereum);
+                signer = provider.getSigner();
+                userAddress = await signer.getAddress();
+
+                const network = await provider.getNetwork();
+                currentNetwork = network;
+
+                if (network.chainId !== SEPOLIA_NETWORK_ID) {
+                    showAlert('Please switch to Sepolia testnet in MetaMask', 'error');
+                    await switchToSepolia();
+                    return;
+                }
+
+                contract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, signer);
+
+                updateConnectionStatus(true);
+                updateUI();
+                setupEventListeners();
+
+                showAlert('Wallet connected successfully!', 'success');
+
+            } catch (error) {
+                console.error('Error connecting wallet:', error);
+
+                if (error.code === 4001) {
+                    showAlert('Connection rejected by user', 'error');
+                } else if (error.code === -32002) {
+                    showAlert('Connection request already pending. Please check MetaMask.', 'info');
+                } else {
+                    showAlert('Failed to connect wallet: ' + error.message, 'error');
+                }
+
+                updateConnectionStatus(false);
+            }
+        }
+
+        async function switchToSepolia() {
+            try {
+                await window.ethereum.request({
+                    method: 'wallet_switchEthereumChain',
+                    params: [{ chainId: '0xAA36A7' }],
+                });
+
+                setTimeout(() => {
+                    connectWallet();
+                }, 1000);
+
+            } catch (switchError) {
+                console.error('Failed to switch network:', switchError);
+
+                if (switchError.code === 4902) {
+                    showAlert('Sepolia network not found. Please add it manually in MetaMask.', 'error');
+                } else {
+                    showAlert('Failed to switch to Sepolia network: ' + switchError.message, 'error');
+                }
+            }
+        }
+
+        function updateConnectionStatus(connected) {
+            const statusElement = document.getElementById('connectionStatus');
+            const statusDot = statusElement.querySelector('.status-dot');
+            const statusText = statusElement.querySelector('span');
+
+            if (connected) {
+                statusElement.style.background = 'rgba(34, 197, 94, 0.2)';
+                statusElement.style.borderColor = 'rgba(34, 197, 94, 0.3)';
+                statusElement.style.color = '#22c55e';
+                statusDot.style.background = '#22c55e';
+                statusText.textContent = 'Connected to blockchain';
+
+                document.getElementById('networkName').textContent = currentNetwork ? currentNetwork.name : NETWORK_NAME;
+                document.getElementById('contractAddress').textContent = CONTRACT_ADDRESS.slice(0, 10) + '...';
+                document.getElementById('userAddress').textContent = userAddress ? userAddress.slice(0, 10) + '...' : 'Not connected';
+
+                updateUserBalance();
+            } else {
+                statusElement.style.background = 'rgba(239, 68, 68, 0.2)';
+                statusElement.style.borderColor = 'rgba(239, 68, 68, 0.3)';
+                statusElement.style.color = '#ef4444';
+                statusDot.style.background = '#ef4444';
+                statusText.textContent = 'Disconnected';
+
+                document.getElementById('networkName').textContent = 'Not connected';
+                document.getElementById('contractAddress').textContent = 'Not connected';
+                document.getElementById('userAddress').textContent = 'Not connected';
+                document.getElementById('userBalance').textContent = '0.0000 ETH';
+            }
+        }
+
+        async function updateUserBalance() {
+            try {
+                if (signer) {
+                    const balance = await signer.getBalance();
+                    document.getElementById('userBalance').textContent =
+                        parseFloat(ethers.utils.formatEther(balance)).toFixed(4) + ' ETH';
+                }
+            } catch (error) {
+                console.error('Error updating balance:', error);
+            }
+        }
+
+        async function updateUI() {
+            try {
+                if (!contract) return;
+
+                const [prizePool, entryFee, participants, isActive] = await Promise.all([
+                    contract.getPrizePool(),
+                    contract.getEntryFee(),
+                    contract.getParticipants(),
+                    contract.isLotteryActive()
+                ]);
+
+                console.log("Contract data:", {
+                    prizePool: ethers.utils.formatEther(prizePool),
+                    entryFee: ethers.utils.formatEther(entryFee),
+                    participants: participants.length,
+                    isActive
+                });
+
+                document.getElementById('prizePool').textContent =
+                    parseFloat(ethers.utils.formatEther(prizePool)).toFixed(5) + ' ETH';
+
+                // 显示合约实际的入场费
+                document.getElementById('entryFee').textContent =
+                    parseFloat(ethers.utils.formatEther(entryFee)).toFixed(5) + ' ETH';
+
+                document.getElementById('participantCount').textContent = participants.length;
+                document.getElementById('lotteryStatus').textContent = isActive ? 'Active' : 'Inactive';
+
+                // 更新总费用
+                updateTotalCost();
+
+            } catch (error) {
+                console.error('Error updating UI:', error);
+                showAlert('Failed to load lottery data. Contract may not be deployed.', 'error');
+            }
+        }
+
+        async function updateTotalCost() {
+            try {
+                if (!contract) return;
+
+                const entryFee = await contract.getEntryFee();
+                const quantity = parseInt(document.getElementById('ticketQuantity').value) || 1;
+                const totalCost = entryFee.mul(quantity);
+
+                document.getElementById('totalCost').textContent =
+                    parseFloat(ethers.utils.formatEther(totalCost)).toFixed(5) + ' ETH';
+
+            } catch (error) {
+                console.error('Error updating total cost:', error);
+            }
+        }
+
+        async function enterLottery() {
+            try {
+                if (!contract) {
+                    showAlert('Please connect your wallet first', 'error');
+                    return;
+                }
+
+                const num1 = document.getElementById('number1').value;
+                const num2 = document.getElementById('number2').value;
+                const num3 = document.getElementById('number3').value;
+                const quantity = parseInt(document.getElementById('ticketQuantity').value);
+
+                if (!num1 || !num2 || !num3) {
+                    showAlert('Please select all three numbers', 'error');
+                    return;
+                }
+
+                if (num1 < 1 || num1 > 50 || num2 < 1 || num2 > 50 || num3 < 1 || num3 > 50) {
+                    showAlert('Numbers must be between 1 and 50', 'error');
+                    return;
+                }
+
+                // 从合约获取真实的入场费
+                const entryFee = await contract.getEntryFee();
+                const totalFee = entryFee.mul(quantity);
+
+                showTransactionModal('Enter Lottery', ethers.utils.formatEther(totalFee) + ' ETH');
+
+                showLoading('enterLoading', true);
+                document.getElementById('enterLotteryBtn').disabled = true;
+
+                const convertToBool = (num) => parseInt(num) % 2 === 1;
+
+                console.log('Sending transaction:', {
+                    num1: convertToBool(num1),
+                    num2: convertToBool(num2),
+                    num3: convertToBool(num3),
+                    value: totalFee.toString()
+                });
+
+                const gasLimit = await contract.estimateGas.enterLottery(
+                    convertToBool(num1),
+                    convertToBool(num2),
+                    convertToBool(num3),
+                    { value: totalFee }
+                );
+
+                const tx = await contract.enterLottery(
+                    convertToBool(num1),
+                    convertToBool(num2),
+                    convertToBool(num3),
+                    {
+                        value: totalFee,
+                        gasLimit: gasLimit.mul(120).div(100)
+                    }
+                );
+
+                hideTransactionModal();
+                showAlert('Transaction sent! Waiting for confirmation...', 'info');
+
+                console.log('Transaction hash:', tx.hash);
+
+                const receipt = await tx.wait();
+                console.log('Transaction confirmed:', receipt);
+
+                showAlert('Successfully entered the lottery! Transaction confirmed.', 'success');
+                updateUI();
+                updateUserBalance();
+                clearForm();
+
+            } catch (error) {
+                console.error('Error entering lottery:', error);
+                hideTransactionModal();
+
+                if (error.code === 4001) {
+                    showAlert('Transaction rejected by user', 'error');
+                } else if (error.code === 'INSUFFICIENT_FUNDS') {
+                    showAlert('Insufficient funds for transaction', 'error');
+                } else if (error.code === 'UNPREDICTABLE_GAS_LIMIT') {
+                    showAlert('Cannot estimate gas. Contract may not be deployed or function may revert.', 'error');
+                } else {
+                    showAlert('Failed to enter lottery: ' + (error.reason || error.message), 'error');
+                }
+            } finally {
+                showLoading('enterLoading', false);
+                document.getElementById('enterLotteryBtn').disabled = false;
+            }
+        }
+
+        async function drawWinner() {
+            try {
+                if (!contract) {
+                    showAlert('Please connect your wallet first', 'error');
+                    return;
+                }
+
+                // Hide previous winner result
+                document.getElementById('winnerResult').style.display = 'none';
+
+                showTransactionModal('Draw Winner', '~0.002 ETH (gas)');
+
+                showLoading('drawLoading', true);
+                document.getElementById('drawWinnerBtn').disabled = true;
+
+                const gasLimit = await contract.estimateGas.drawWinner();
+                const tx = await contract.drawWinner({
+                    gasLimit: gasLimit.mul(120).div(100)
+                });
+
+                hideTransactionModal();
+                showAlert('Draw transaction sent! Waiting for confirmation...', 'info');
+
+                const receipt = await tx.wait();
+                console.log('Draw transaction confirmed:', receipt);
+
+                const winnerEvent = receipt.events.find(e => e.event === 'WinnerDrawn');
+                if (winnerEvent) {
+                    const { winner, prize, num1, num2, num3, round } = winnerEvent.args;
+
+                    // Display winner result
+                    document.getElementById('winningNumbers').textContent = `${num1}-${num2}-${num3}`;
+                    document.getElementById('winnerAddress').textContent = winner.slice(0, 10) + "..." + winner.slice(-8);
+                    document.getElementById('prizeWon').textContent = parseFloat(ethers.utils.formatEther(prize)).toFixed(5) + " ETH";
+                    document.getElementById('roundNumber').textContent = round ? round.toString() : "1";
+                    document.getElementById('winnerResult').style.display = 'block';
+
+                    showAlert(`Winner drawn! ${winner.slice(0, 10)}... won ${parseFloat(ethers.utils.formatEther(prize)).toFixed(5)} ETH with numbers ${num1}-${num2}-${num3}`, 'success');
+                } else {
+                    showAlert('Winner has been drawn successfully!', 'success');
+                }
+
+                updateUI();
+                updateUserBalance();
+
+            } catch (error) {
+                console.error('Error drawing winner:', error);
+                hideTransactionModal();
+
+                if (error.code === 4001) {
+                    showAlert('Transaction rejected by user', 'error');
+                } else if (error.code === 'INSUFFICIENT_FUNDS') {
+                    showAlert('Insufficient funds for gas', 'error');
+                } else {
+                    showAlert('Failed to draw winner: ' + (error.reason || error.message), 'error');
+                }
+            } finally {
+                showLoading('drawLoading', false);
+                document.getElementById('drawWinnerBtn').disabled = false;
+            }
+        }
+
+        function setupEventListeners() {
+            if (!contract) return;
+
+            contract.on('LotteryEntered', (participant, ticketCount) => {
+                console.log('LotteryEntered event:', participant, ticketCount.toString());
+                showAlert(`New participant entered: ${participant.slice(0, 10)}...`, 'info');
+                updateUI();
+            });
+
+            contract.on('WinnerDrawn', (winner, prize, num1, num2, num3) => {
+                console.log('WinnerDrawn event:', winner, prize.toString(), num1, num2, num3);
+                showAlert(`Winner drawn! ${winner.slice(0, 10)}... won ${ethers.utils.formatEther(prize)} ETH`, 'success');
+                updateUI();
+            });
+        }
+
+        function showTransactionModal(action, amount) {
+            document.getElementById('txAction').textContent = action;
+            document.getElementById('txAmount').textContent = amount;
+            document.getElementById('txNetwork').textContent = currentNetwork ? currentNetwork.name : NETWORK_NAME;
+            document.getElementById('transactionModal').style.display = 'flex';
+        }
+
+        function hideTransactionModal() {
+            document.getElementById('transactionModal').style.display = 'none';
+        }
+
+        function clearForm() {
+            document.getElementById('number1').value = '';
+            document.getElementById('number2').value = '';
+            document.getElementById('number3').value = '';
+            document.getElementById('ticketQuantity').value = '1';
+            updateTotalCost();
+        }
+
+        function showLoading(elementId, show) {
+            document.getElementById(elementId).style.display = show ? 'block' : 'none';
+        }
+
+        function showAlert(message, type) {
+            const alertDiv = document.createElement('div');
+            alertDiv.className = `alert alert-${type}`;
+            alertDiv.textContent = message;
+
+            const container = document.querySelector('.container');
+            container.insertBefore(alertDiv, container.firstChild);
+
+            setTimeout(() => {
+                alertDiv.remove();
+            }, 5000);
+        }
+
+        // Initialize application when page loads
+        window.addEventListener('load', function() {
+            // Add small delay to ensure ethers.js is fully loaded
+            setTimeout(() => {
+                if (typeof ethers !== 'undefined') {
+                    console.log('Ethers.js loaded successfully');
+                    connectWallet();
+                } else {
+                    console.error('Ethers.js failed to load');
+                    showAlert('Failed to load required libraries. Please refresh the page.', 'error');
+                }
+            }, 200);
+        });
+
+        if (window.ethereum) {
+            window.ethereum.on('accountsChanged', (accounts) => {
+                if (accounts.length === 0) {
+                    updateConnectionStatus(false);
+                    showAlert('Wallet disconnected', 'info');
+                } else {
+                    window.location.reload();
+                }
+            });
+
+            window.ethereum.on('chainChanged', () => {
+                window.location.reload();
+            });
+        }
+    </script>
+</body>
+</html>

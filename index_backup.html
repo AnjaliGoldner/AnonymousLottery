@@ -1,0 +1,749 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#7c3aed" />
+    <meta name="description" content="Anonymous Lottery System - Private lottery platform using Zama FHE protocol" />
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <title>Anonymous Lottery System</title>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding: 40px 20px;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .header h1 {
+            font-size: 3rem;
+            font-weight: 700;
+            color: white;
+            margin-bottom: 10px;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+        }
+
+        .header p {
+            font-size: 1.2rem;
+            color: rgba(255, 255, 255, 0.8);
+            margin-bottom: 20px;
+        }
+
+        .status-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            background: rgba(34, 197, 94, 0.2);
+            border: 1px solid rgba(34, 197, 94, 0.3);
+            border-radius: 50px;
+            color: #22c55e;
+            font-weight: 500;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            background: #22c55e;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+        }
+
+        .card h2 {
+            font-size: 1.8rem;
+            font-weight: 600;
+            margin-bottom: 20px;
+            color: #1f2937;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .icon {
+            width: 24px;
+            height: 24px;
+            fill: #7c3aed;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #374151;
+        }
+
+        .input-group input, .input-group select {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e5e7eb;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            background: white;
+        }
+
+        .input-group input:focus, .input-group select:focus {
+            outline: none;
+            border-color: #7c3aed;
+            box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.1);
+        }
+
+        .btn {
+            width: 100%;
+            padding: 14px 24px;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #7c3aed, #a855f7);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(124, 58, 237, 0.3);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #06b6d4, #0891b2);
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(6, 182, 212, 0.3);
+        }
+
+        .btn:disabled {
+            background: #9ca3af;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .lottery-info {
+            background: linear-gradient(135deg, #f3f4f6, #e5e7eb);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+        }
+
+        .info-item {
+            text-align: center;
+        }
+
+        .info-item .label {
+            font-size: 0.875rem;
+            color: #6b7280;
+            font-weight: 500;
+            margin-bottom: 5px;
+        }
+
+        .info-item .value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #1f2937;
+        }
+
+        .participant-list {
+            max-height: 200px;
+            overflow-y: auto;
+            border: 1px solid #e5e7eb;
+            border-radius: 10px;
+            background: #f9fafb;
+        }
+
+        .participant-item {
+            padding: 12px 16px;
+            border-bottom: 1px solid #e5e7eb;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .participant-item:last-child {
+            border-bottom: none;
+        }
+
+        .participant-address {
+            font-family: 'Courier New', monospace;
+            font-size: 0.875rem;
+            color: #6b7280;
+        }
+
+        .participant-numbers {
+            font-weight: 600;
+            color: #7c3aed;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid #f3f4f6;
+            border-top: 4px solid #7c3aed;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .alert {
+            padding: 16px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            font-weight: 500;
+        }
+
+        .alert-success {
+            background: #d1fae5;
+            border: 1px solid #a7f3d0;
+            color: #065f46;
+        }
+
+        .alert-error {
+            background: #fee2e2;
+            border: 1px solid #fecaca;
+            color: #991b1b;
+        }
+
+        .alert-info {
+            background: #dbeafe;
+            border: 1px solid #bfdbfe;
+            color: #1e40af;
+        }
+
+        .history-section {
+            margin-top: 40px;
+        }
+
+        .history-card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        }
+
+        .winner-announcement {
+            text-align: center;
+            padding: 30px;
+            background: linear-gradient(135deg, #fbbf24, #f59e0b);
+            border-radius: 15px;
+            margin: 20px 0;
+            color: white;
+        }
+
+        .winner-announcement h3 {
+            font-size: 2rem;
+            margin-bottom: 10px;
+        }
+
+        .winner-numbers {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin: 10px 0;
+        }
+
+        .footer {
+            text-align: center;
+            padding: 40px 20px;
+            color: rgba(255, 255, 255, 0.7);
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .network-info {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 20px;
+            text-align: center;
+            color: rgba(255, 255, 255, 0.8);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎰 Anonymous Lottery System</h1>
+            <p>Private lottery platform using Zama FHE protocol for confidential draws</p>
+            <div class="status-indicator" id="connectionStatus">
+                <div class="status-dot"></div>
+                <span>Connecting to blockchain...</span>
+            </div>
+            <div class="network-info">
+                <div>Contract Address: <span id="contractAddress">Not connected</span></div>
+                <div>Your Address: <span id="userAddress">Not connected</span></div>
+            </div>
+        </div>
+
+        <div class="main-content">
+            <div class="card">
+                <h2>
+                    <svg class="icon" viewBox="0 0 24 24">
+                        <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                    Enter Lottery
+                </h2>
+
+                <div class="lottery-info">
+                    <div class="info-grid">
+                        <div class="info-item">
+                            <div class="label">Prize Pool</div>
+                            <div class="value" id="prizePool">0.00 ETH</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="label">Participants</div>
+                            <div class="value" id="participantCount">0</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="label">Entry Fee</div>
+                            <div class="value" id="entryFee">0.01 ETH</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="label">Status</div>
+                            <div class="value" id="lotteryStatus">Active</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="input-group">
+                    <label for="luckyNumbers">Select Your Lucky Numbers (1-50)</label>
+                    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;">
+                        <input type="number" id="number1" min="1" max="50" placeholder="Number 1" required>
+                        <input type="number" id="number2" min="1" max="50" placeholder="Number 2" required>
+                        <input type="number" id="number3" min="1" max="50" placeholder="Number 3" required>
+                    </div>
+                </div>
+
+                <div class="input-group">
+                    <label for="ticketQuantity">Number of Tickets</label>
+                    <select id="ticketQuantity">
+                        <option value="1">1 Ticket (0.01 ETH)</option>
+                        <option value="2">2 Tickets (0.02 ETH)</option>
+                        <option value="3">3 Tickets (0.03 ETH)</option>
+                        <option value="5">5 Tickets (0.05 ETH)</option>
+                    </select>
+                </div>
+
+                <button class="btn btn-primary" id="enterLotteryBtn" onclick="enterLottery()">
+                    Enter Lottery
+                </button>
+
+                <div class="loading" id="enterLoading">
+                    <div class="spinner"></div>
+                    <div>Processing your entry...</div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>
+                    <svg class="icon" viewBox="0 0 24 24">
+                        <path d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                    </svg>
+                    Draw Winner
+                </h2>
+
+                <div class="input-group">
+                    <label>Draw Settings</label>
+                    <div style="background: #f3f4f6; padding: 15px; border-radius: 10px; margin-bottom: 15px;">
+                        <p style="margin-bottom: 10px; color: #6b7280;">
+                            <strong>Privacy Features:</strong>
+                        </p>
+                        <ul style="color: #6b7280; margin-left: 20px;">
+                            <li>Numbers are encrypted using FHE</li>
+                            <li>Winners drawn privately on-chain</li>
+                            <li>Results revealed only after draw</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="input-group">
+                    <label for="drawType">Draw Type</label>
+                    <select id="drawType">
+                        <option value="standard">Standard Draw (3 numbers)</option>
+                        <option value="quick">Quick Pick (Random)</option>
+                        <option value="jackpot">Jackpot (All numbers match)</option>
+                    </select>
+                </div>
+
+                <button class="btn btn-secondary" id="drawWinnerBtn" onclick="drawWinner()">
+                    Draw Winner
+                </button>
+
+                <div class="loading" id="drawLoading">
+                    <div class="spinner"></div>
+                    <div>Drawing winner...</div>
+                </div>
+
+                <div id="winnerResult" style="display: none;">
+                    <div class="winner-announcement">
+                        <h3>🏆 Winner Drawn!</h3>
+                        <div class="winner-numbers" id="winningNumbers">00-00-00</div>
+                        <div>Winner: <span id="winnerAddress">0x...</span></div>
+                        <div>Prize: <span id="prizewon">0.00 ETH</span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="history-section">
+            <div class="history-card">
+                <h2>
+                    <svg class="icon" viewBox="0 0 24 24">
+                        <path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                    Current Participants
+                </h2>
+                <div class="participant-list" id="participantsList">
+                    <div style="text-align: center; padding: 40px; color: #6b7280;">
+                        No participants yet. Be the first to enter!
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="history-section">
+            <div class="history-card">
+                <h2>
+                    <svg class="icon" viewBox="0 0 24 24">
+                        <path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                    </svg>
+                    Recent Winners
+                </h2>
+                <div id="winnersHistory">
+                    <div style="text-align: center; padding: 40px; color: #6b7280;">
+                        No winners yet. First draw coming soon!
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p>Powered by Zama FHE Protocol | Anonymous Lottery System</p>
+            <p>Your privacy is protected through cryptographic encryption</p>
+        </div>
+    </div>
+
+    <script src="https://cdn.ethers.io/lib/ethers-5.7.2.umd.min.js"></script>
+    <script>
+        let provider;
+        let signer;
+        let contract;
+        let userAddress;
+
+        const CONTRACT_ADDRESS = "0x742d35Cc6565C42c9dcE31C68bBC653C9f8aB8Ca";
+
+        const CONTRACT_ABI = [
+            "function enterLottery(bool num1, bool num2, bool num3) payable external",
+            "function drawWinner() external returns (address)",
+            "function getParticipants() external view returns (address[])",
+            "function getPrizePool() external view returns (uint256)",
+            "function getEntryFee() external view returns (uint256)",
+            "function getWinningNumbers() external view returns (uint8, uint8, uint8)",
+            "function getLastWinner() external view returns (address)",
+            "function isLotteryActive() external view returns (bool)",
+            "event LotteryEntered(address indexed participant, uint256 ticketCount)",
+            "event WinnerDrawn(address indexed winner, uint256 prize, uint8 num1, uint8 num2, uint8 num3)"
+        ];
+
+        async function connectWallet() {
+            try {
+                if (typeof window.ethereum !== 'undefined') {
+                    await window.ethereum.request({ method: 'eth_requestAccounts' });
+                    provider = new ethers.providers.Web3Provider(window.ethereum);
+                    signer = provider.getSigner();
+                    userAddress = await signer.getAddress();
+
+                    contract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, signer);
+
+                    updateConnectionStatus(true);
+                    updateUI();
+                    setupEventListeners();
+                } else {
+                    showAlert('Please install MetaMask to use this application', 'error');
+                }
+            } catch (error) {
+                console.error('Error connecting wallet:', error);
+                showAlert('Failed to connect wallet: ' + error.message, 'error');
+                updateConnectionStatus(false);
+            }
+        }
+
+        function updateConnectionStatus(connected) {
+            const statusElement = document.getElementById('connectionStatus');
+            const statusDot = statusElement.querySelector('.status-dot');
+            const statusText = statusElement.querySelector('span');
+
+            if (connected) {
+                statusElement.style.background = 'rgba(34, 197, 94, 0.2)';
+                statusElement.style.borderColor = 'rgba(34, 197, 94, 0.3)';
+                statusElement.style.color = '#22c55e';
+                statusDot.style.background = '#22c55e';
+                statusText.textContent = 'Connected to blockchain';
+
+                document.getElementById('contractAddress').textContent = CONTRACT_ADDRESS.slice(0, 10) + '...';
+                document.getElementById('userAddress').textContent = userAddress ? userAddress.slice(0, 10) + '...' : 'Not connected';
+            } else {
+                statusElement.style.background = 'rgba(239, 68, 68, 0.2)';
+                statusElement.style.borderColor = 'rgba(239, 68, 68, 0.3)';
+                statusElement.style.color = '#ef4444';
+                statusDot.style.background = '#ef4444';
+                statusText.textContent = 'Disconnected';
+            }
+        }
+
+        async function updateUI() {
+            try {
+                if (!contract) return;
+
+                const [prizePool, entryFee, participants, isActive] = await Promise.all([
+                    contract.getPrizePool(),
+                    contract.getEntryFee(),
+                    contract.getParticipants(),
+                    contract.isLotteryActive()
+                ]);
+
+                document.getElementById('prizePool').textContent = ethers.utils.formatEther(prizePool) + ' ETH';
+                document.getElementById('entryFee').textContent = ethers.utils.formatEther(entryFee) + ' ETH';
+                document.getElementById('participantCount').textContent = participants.length;
+                document.getElementById('lotteryStatus').textContent = isActive ? 'Active' : 'Inactive';
+
+                updateParticipantsList(participants);
+            } catch (error) {
+                console.error('Error updating UI:', error);
+            }
+        }
+
+        function updateParticipantsList(participants) {
+            const listElement = document.getElementById('participantsList');
+
+            if (participants.length === 0) {
+                listElement.innerHTML = '<div style="text-align: center; padding: 40px; color: #6b7280;">No participants yet. Be the first to enter!</div>';
+                return;
+            }
+
+            listElement.innerHTML = participants.map((address, index) => `
+                <div class="participant-item">
+                    <span class="participant-address">${address.slice(0, 10)}...${address.slice(-8)}</span>
+                    <span class="participant-numbers">Entry #${index + 1}</span>
+                </div>
+            `).join('');
+        }
+
+        async function enterLottery() {
+            try {
+                const num1 = document.getElementById('number1').value;
+                const num2 = document.getElementById('number2').value;
+                const num3 = document.getElementById('number3').value;
+                const quantity = document.getElementById('ticketQuantity').value;
+
+                if (!num1 || !num2 || !num3) {
+                    showAlert('Please select all three numbers', 'error');
+                    return;
+                }
+
+                if (num1 < 1 || num1 > 50 || num2 < 1 || num2 > 50 || num3 < 1 || num3 > 50) {
+                    showAlert('Numbers must be between 1 and 50', 'error');
+                    return;
+                }
+
+                const entryFee = await contract.getEntryFee();
+                const totalFee = entryFee.mul(quantity);
+
+                showLoading('enterLoading', true);
+                document.getElementById('enterLotteryBtn').disabled = true;
+
+                const convertToBool = (num) => parseInt(num) % 2 === 1;
+
+                const tx = await contract.enterLottery(
+                    convertToBool(num1),
+                    convertToBool(num2),
+                    convertToBool(num3),
+                    { value: totalFee }
+                );
+
+                await tx.wait();
+
+                showAlert('Successfully entered the lottery!', 'success');
+                updateUI();
+                clearForm();
+
+            } catch (error) {
+                console.error('Error entering lottery:', error);
+                showAlert('Failed to enter lottery: ' + error.message, 'error');
+            } finally {
+                showLoading('enterLoading', false);
+                document.getElementById('enterLotteryBtn').disabled = false;
+            }
+        }
+
+        async function drawWinner() {
+            try {
+                showLoading('drawLoading', true);
+                document.getElementById('drawWinnerBtn').disabled = true;
+
+                const tx = await contract.drawWinner();
+                const receipt = await tx.wait();
+
+                const winnerEvent = receipt.events.find(e => e.event === 'WinnerDrawn');
+                if (winnerEvent) {
+                    const { winner, prize, num1, num2, num3 } = winnerEvent.args;
+
+                    document.getElementById('winningNumbers').textContent = `${num1}-${num2}-${num3}`;
+                    document.getElementById('winnerAddress').textContent = winner.slice(0, 10) + '...';
+                    document.getElementById('prizewon').textContent = ethers.utils.formatEther(prize) + ' ETH';
+
+                    document.getElementById('winnerResult').style.display = 'block';
+                }
+
+                showAlert('Winner has been drawn!', 'success');
+                updateUI();
+
+            } catch (error) {
+                console.error('Error drawing winner:', error);
+                showAlert('Failed to draw winner: ' + error.message, 'error');
+            } finally {
+                showLoading('drawLoading', false);
+                document.getElementById('drawWinnerBtn').disabled = false;
+            }
+        }
+
+        function setupEventListeners() {
+            if (!contract) return;
+
+            contract.on('LotteryEntered', (participant, ticketCount) => {
+                showAlert(`New participant entered: ${participant.slice(0, 10)}...`, 'info');
+                updateUI();
+            });
+
+            contract.on('WinnerDrawn', (winner, prize, num1, num2, num3) => {
+                showAlert(`Winner drawn! ${winner.slice(0, 10)}... won ${ethers.utils.formatEther(prize)} ETH`, 'success');
+                updateUI();
+            });
+        }
+
+        function clearForm() {
+            document.getElementById('number1').value = '';
+            document.getElementById('number2').value = '';
+            document.getElementById('number3').value = '';
+            document.getElementById('ticketQuantity').value = '1';
+        }
+
+        function showLoading(elementId, show) {
+            document.getElementById(elementId).style.display = show ? 'block' : 'none';
+        }
+
+        function showAlert(message, type) {
+            const alertDiv = document.createElement('div');
+            alertDiv.className = `alert alert-${type}`;
+            alertDiv.textContent = message;
+
+            const container = document.querySelector('.container');
+            container.insertBefore(alertDiv, container.firstChild);
+
+            setTimeout(() => {
+                alertDiv.remove();
+            }, 5000);
+        }
+
+        window.addEventListener('load', () => {
+            connectWallet();
+        });
+
+        if (window.ethereum) {
+            window.ethereum.on('accountsChanged', () => {
+                window.location.reload();
+            });
+
+            window.ethereum.on('chainChanged', () => {
+                window.location.reload();
+            });
+        }
+    </script>
+</body>
+</html>
